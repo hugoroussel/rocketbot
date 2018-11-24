@@ -1,5 +1,6 @@
 .DS_Store
 dataset/
+!dataset/main.py
 data.txt
 *.csv
 winner.pkl
