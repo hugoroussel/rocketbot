@@ -32,7 +32,9 @@ class App extends Component {
   }
 
   render () {
-    const teams = this.state.teams.sort((t1, t2) => t1.cash + t1.assets < t2.cash + t2.assets)
+    const teams = this.state.teams
+      .map(t => ({ cash: parseInt(t.cash), assets: parseInt(t.assets), ...t }))
+      .sort((t1, t2) => t1.cash + t1.assets < t2.cash + t2.assets)
     const transactions = this.state.transactions.slice().reverse().slice(0, 10)
     return (
       <div>
