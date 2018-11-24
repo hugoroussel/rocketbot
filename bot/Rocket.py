@@ -8,3 +8,13 @@ class Rocket(object):
             if line:
                 decoded_line = line.decode('utf-8')
                 callback(decoded_line)
+
+    @staticmethod
+    def sell(amount):
+        r = requests.post('http://lauzhack.sqpub.ch', data='SELL {} BTC hjgsf348ziogfouzg'.format(amount))
+        print('SOLD {} BTC'.format(amount))
+        
+    @staticmethod
+    def buy(amount):
+        r = requests.post('http://lauzhack.sqpub.ch', data='BUY {} BTC hjgsf348ziogfouzg'.format(amount))
+        print('BROUGHT {} BCT'.format(amount))
