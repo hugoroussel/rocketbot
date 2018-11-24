@@ -1,21 +1,39 @@
 from __future__ import print_function
 import os
 import neat
+import csv
 
-FEE = 0.001
+FEE = 0.00001
 
-inputs = [(4324.0, 0.0, 0.0), (4532.0, 0.0, 0.0), (4212.0, 0.0, 0.0), (4133.0, 0.0, 0.0)]
+dataset = []
+epoche_number = 0
+
+def import_data(dataset):
+    with open('training/data_bs.csv', mode='r') as csv_file:
+        reader = csv.reader(csv_file, delimiter=',')
+        for row in reader:
+            dataset.append(row)
+
+def load_inputs(inputs):
+    global epoche_number
+    for n in dataset[epoche_number]:
+        if(n != ''):
+            inputs.append([float(n),0.0,0.0])
+    epoche_number += 1
 
 def eval_genomes(genomes, config):
+
+    inputs = []
+    load_inputs(inputs)
+
     for genome_id, genome in genomes:
         net = neat.nn.FeedForwardNetwork.create(genome, config)
         usd = 100000
         btc = 0
         for xi in inputs:
-            lst = list(xi)
-            lst[1] = usd
-            lst[2] = btc
-            xi = tuple(lst)
+            xi[1] = usd
+            xi[2] = btc
+            xi = tuple(xi)
             output = net.activate(xi)
 
             if output[0] > 0.8:
@@ -24,6 +42,7 @@ def eval_genomes(genomes, config):
             elif output[0] < 0.2:
                 usd += (btc * xi[0]) * (1 - FEE)
                 btc = 0
+
         usd += btc * inputs[len(inputs) - 1][0]
         genome.fitness = usd
 
@@ -42,8 +61,11 @@ def run(config_file):
     p.add_reporter(stats)
     p.add_reporter(neat.Checkpointer(5))
 
-    # Run for up to 300 generations.
-    winner = p.run(eval_genomes, 300)
+    #importing dataset
+    import_data(dataset)
+
+    # Run for up to data's epoche generations.
+    winner = p.run(eval_genomes, len(dataset))
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))
