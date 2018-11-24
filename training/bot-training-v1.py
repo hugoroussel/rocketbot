@@ -11,7 +11,7 @@ dataset = []
 epoche_number = 0
 
 def import_data(dataset):
-    with open('training/data_bs.csv', mode='r') as csv_file:
+    with open('training/data_bs_4.csv', mode='r') as csv_file:
         reader = csv.reader(csv_file, delimiter=',')
         for row in reader:
             dataset.append(row)
@@ -19,9 +19,8 @@ def import_data(dataset):
 def load_inputs(inputs):
     global epoche_number
     epoche = dataset[epoche_number]
-    for n in range(0,int(len(epoche)/2)):
-        if(epoche[n*2] != '' and epoche[n*2+1] != ''):
-            inputs.append([float(epoche[n*2]),float(epoche[n*2+1]),0.0,0.0])
+    for n in range(0,int(len(epoche)/4)):
+        inputs.append([float(epoche[n*4]),float(epoche[n*4+1]),float(epoche[n*4+2]),float(epoche[n*4+3]),0.0,0.0])
     epoche_number += 1
 
 def eval_genomes(genomes, config):
@@ -45,6 +44,8 @@ def eval_genomes(genomes, config):
             ni = xi.copy()
             ni[0] /= 5000.0
             ni[1] /= 5000.0
+            ni[2] /= 5000.0
+            ni[3] /= 5000.0
             ni[in_size-2] = usd / 100000.0
             ni[in_size-1] = btc / 25.0
             ni = tuple(ni)
@@ -98,7 +99,7 @@ def run(config_file):
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))
-    
+
     # Store the winner !
     with open('winner.pkl', 'wb') as output:
         pickle.dump(winner, output, pickle.HIGHEST_PROTOCOL)

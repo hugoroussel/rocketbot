@@ -2,3 +2,4 @@
 dataset/
 data.txt
 *.csv
+winner.pkl
