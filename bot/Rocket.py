@@ -1,9 +1,22 @@
 import requests
+import json
 import datetime as dt
+import sqlite3
+
+conn = sqlite3.connect('example.db')
+
+c = conn.cursor()
+
+# Create table
+if not c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='transactions'").fetchone():
+    c.execute('''CREATE TABLE transactions
+                 (tx text)''')
+    # Save (commit) the changes
+    conn.commit()
+
+conn.close()
 
 class Rocket(object):
-    txns = []
-    
     @staticmethod
     def get(callback):
         r = requests.get('http://lauzhack.sqpub.ch/prices', stream=True)
@@ -16,19 +29,27 @@ class Rocket(object):
     def sell(cls, amount):
         r = requests.post('http://lauzhack.sqpub.ch', data='SELL {} BTC hjgsf348ziogfouzg'.format(amount))
         try:
-            cls.txns.append(r.json())
+            conn = sqlite3.connect('example.db')
+            c = conn.cursor()
+            c.execute("INSERT INTO transactions VALUES (?)", (str(r.json()),))
+            conn.commit()
+            conn.close()
+            print('SOLD {} BTC'.format(amount))
         except:
-            cls.txns.append(r.text)
-        print('SOLD {} BTC'.format(amount))
+            pass
         
     @classmethod
     def buy(cls, amount):
         r = requests.post('http://lauzhack.sqpub.ch', data='BUY {} BTC hjgsf348ziogfouzg'.format(amount))
         try:
-            cls.txns.append(r.json())
+            conn = sqlite3.connect('example.db')
+            c = conn.cursor()
+            c.execute("INSERT INTO transactions VALUES (?)", (str(r.json()),))
+            conn.commit()
+            conn.close()
+            print('BROUGHT {} BCT'.format(amount))
         except:
-            cls.txns.append(r.text)
-        print('BROUGHT {} BCT'.format(amount))
+            pass
 
     @staticmethod
     def team():
@@ -40,7 +61,11 @@ class Rocket(object):
                 
     @classmethod
     def transactions(cls):
-        return cls.txns
+        conn = sqlite3.connect('example.db')
+        c = conn.cursor()
+        txns = c.execute('SELECT * FROM transactions').fetchall()
+        c.close()
+        return json.dumps(txns)
 
     @staticmethod
     def format(transaction):
