@@ -6,4 +6,6 @@ Rocket.buy(1)
 
 Rocket.sell(1)
 
+print(Rocket.team())
+
 Rocket.get(print)

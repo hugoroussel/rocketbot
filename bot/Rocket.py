@@ -18,3 +18,11 @@ class Rocket(object):
     def buy(amount):
         r = requests.post('http://lauzhack.sqpub.ch', data='BUY {} BTC hjgsf348ziogfouzg'.format(amount))
         print('BROUGHT {} BCT'.format(amount))
+
+    @staticmethod
+    def team():
+        r = requests.get('http://lauzhack.sqpub.ch/teams')
+        teams = r.json()
+        for team in teams:
+            if team['name'] == 'Rocket':
+                return team
