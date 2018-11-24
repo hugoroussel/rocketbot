@@ -4,7 +4,7 @@ import neat
 import csv
 import pickle
 
-FEE = 0.00001
+FEE = 0.0001
 MA_NUMBER = 1
 
 dataset = []
@@ -28,12 +28,16 @@ def eval_genomes(genomes, config):
     inputs = []
     load_inputs(inputs)
 
+    btc_ref = inputs[0][0]
+    avg_transactions = 0
+
     for genome_id, genome in genomes:
         net = neat.nn.FeedForwardNetwork.create(genome, config)
         usd = 100000
         btc = 0
         transactions = 0
-        penalty = 0
+
+
 
         trend = (usd / inputs[0][0]) * inputs[len(inputs) - 1][0]
 
@@ -42,39 +46,40 @@ def eval_genomes(genomes, config):
             price = xi[0]
 
             ni = xi.copy()
-            ni[0] /= 5000.0
-            ni[1] /= 5000.0
-            ni[2] /= 5000.0
-            ni[3] /= 5000.0
+            ni[0] /= btc_ref
+            ni[1] /= btc_ref
+            ni[2] /= btc_ref
+            ni[3] /= btc_ref
             ni[in_size-2] = usd / 100000.0
-            ni[in_size-1] = btc / 25.0
+            ni[in_size-1] = btc / (100000.0/btc_ref)
             ni = tuple(ni)
+
+            # print(ni)
+
             output = net.activate(ni)
 
-            if (output[0] > 0.5 and output[1] > 0.5):
-                if(usd == 0):
-                    penalty += 1
-                else:
-                    btc += (usd / price) * (1 - FEE)
-                    usd = 0
-                    transactions += 1
-            elif (output[0] < 0.5 and output[1] > 0.5):
-                if(btc == 0):
-                    penalty += 1
-                else:
-                    usd += (btc * price) * (1 - FEE)
-                    btc = 0
-                    transactions += 1
+            if (output[0] > 0 and output[1] > 0 and output[2] > 0.00001):
+                btc += ((usd * (output[2]+1)/2 ) / price) * (1 - FEE)
+                usd -= usd * (output[2]+1)/2
+                transactions += 1
+            elif (output[0] < 0 and output[1] > 0 and output[2] > 0.00001):
+                usd += ((btc * (output[2]+1)/2) * price) * (1 - FEE)
+                btc -= (btc * (output[2]+1)/2)
+                transactions += 1
 
-        usd += btc * inputs[len(inputs) - 1][0]
-        fitness = usd
+
+        fitness = usd + btc * inputs[len(inputs) - 1][0]
 
         # forcing transactions
-        if transactions < 5:
-            fitness -= (5 - transactions) * 5000
+        if transactions < 9:
+            fitness -= (9 - transactions) * 10000
 
-        fitness -= (penalty * 1000)
+
         genome.fitness = fitness
+        avg_transactions += transactions
+
+    avg_transactions /= len(genomes)
+    print('Average transactions :', avg_transactions)
 
 def run(config_file):
     # Load configuration.
@@ -95,7 +100,7 @@ def run(config_file):
     import_data(dataset)
 
     # Run for up to data's epoche generations.
-    winner = p.run(eval_genomes, 10) #len(dataset))
+    winner = p.run(eval_genomes, len(dataset)) #len(dataset))
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))
