@@ -2,6 +2,7 @@ from __future__ import print_function
 import os
 import neat
 import csv
+import pickle
 
 FEE = 0.00001
 
@@ -65,10 +66,14 @@ def run(config_file):
     import_data(dataset)
 
     # Run for up to data's epoche generations.
-    winner = p.run(eval_genomes, len(dataset))
+    winner = p.run(eval_genomes, 10) #len(dataset))
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))
+    
+    # Store the winner !
+    with open('winner.pkl', 'wb') as output:
+        pickle.dump(winner, output, pickle.HIGHEST_PROTOCOL)
 
 if __name__ == '__main__':
     # Determine path to configuration file. This path manipulation is
