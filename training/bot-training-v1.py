@@ -9,7 +9,7 @@ dataset = []
 epoche_number = 0
 
 def import_data(dataset):
-    with open('training/data_bs.csv', mode='r') as csv_file:
+    with open('training/data.csv', mode='r') as csv_file:
         reader = csv.reader(csv_file, delimiter=',')
         for row in reader:
             dataset.append(row)
