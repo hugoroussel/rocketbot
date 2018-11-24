@@ -15,13 +15,19 @@ class Rocket(object):
     @classmethod
     def sell(cls, amount):
         r = requests.post('http://lauzhack.sqpub.ch', data='SELL {} BTC hjgsf348ziogfouzg'.format(amount))
-        cls.txns.append(r.json())
+        try:
+            cls.txns.append(r.json())
+        except:
+            cls.txns.append(r.text)
         print('SOLD {} BTC'.format(amount))
         
     @classmethod
     def buy(cls, amount):
         r = requests.post('http://lauzhack.sqpub.ch', data='BUY {} BTC hjgsf348ziogfouzg'.format(amount))
-        cls.txns.append(r.json())
+        try:
+            cls.txns.append(r.json())
+        except:
+            cls.txns.append(r.text)
         print('BROUGHT {} BCT'.format(amount))
 
     @staticmethod
