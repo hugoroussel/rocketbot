@@ -8,9 +8,9 @@ reset_on_extinction   = False
 
 [DefaultGenome]
 # node activation options
-activation_default      = sigmoid
-activation_mutate_rate  = 0.0
-activation_options      = sigmoid
+activation_default      = clamped
+activation_mutate_rate  = 0.05
+activation_options      = clamped
 
 # node aggregation options
 aggregation_default     = sum
@@ -28,27 +28,27 @@ bias_replace_rate       = 0.1
 
 # genome compatibility options
 compatibility_disjoint_coefficient = 1.0
-compatibility_weight_coefficient   = 0.5
+compatibility_weight_coefficient   = 1.0
 
 # connection add/remove rates
-conn_add_prob           = 0.5
-conn_delete_prob        = 0.5
+conn_add_prob           = 0.15
+conn_delete_prob        = 0.1
 
 # connection enable options
 enabled_default         = True
-enabled_mutate_rate     = 0.01
+enabled_mutate_rate     = 0.005
 
 feed_forward            = True
-initial_connection      = full
+initial_connection      = partial 0.5
 
 # node add/remove rates
-node_add_prob           = 0.2
-node_delete_prob        = 0.2
+node_add_prob           = 0.15
+node_delete_prob        = 0.1
 
 # network parameters
 num_hidden              = 0
-num_inputs              = 3
-num_outputs             = 1
+num_inputs              = 6
+num_outputs             = 3
 
 # node response options
 response_init_mean      = 1.0
@@ -56,7 +56,7 @@ response_init_stdev     = 0.0
 response_max_value      = 30.0
 response_min_value      = -30.0
 response_mutate_power   = 0.0
-response_mutate_rate    = 0.0
+response_mutate_rate    = 0.1
 response_replace_rate   = 0.0
 
 # connection weight options
@@ -72,7 +72,7 @@ weight_replace_rate     = 0.1
 compatibility_threshold = 3.0
 
 [DefaultStagnation]
-species_fitness_func = max
+species_fitness_func = mean
 max_stagnation       = 20
 species_elitism      = 2
 

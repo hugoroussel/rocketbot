@@ -28,28 +28,12 @@ class Rocket(object):
     @classmethod
     def sell(cls, amount):
         r = requests.post('http://lauzhack.sqpub.ch', data='SELL {} BTC hjgsf348ziogfouzg'.format(amount))
-        try:
-            conn = sqlite3.connect('example.db')
-            c = conn.cursor()
-            c.execute("INSERT INTO transactions VALUES (?)", (str(r.json()),))
-            conn.commit()
-            conn.close()
-            print('SOLD {} BTC'.format(amount))
-        except:
-            pass
+        print('SOLD {} BTC'.format(amount))
         
     @classmethod
     def buy(cls, amount):
         r = requests.post('http://lauzhack.sqpub.ch', data='BUY {} BTC hjgsf348ziogfouzg'.format(amount))
-        try:
-            conn = sqlite3.connect('example.db')
-            c = conn.cursor()
-            c.execute("INSERT INTO transactions VALUES (?)", (str(r.json()),))
-            conn.commit()
-            conn.close()
-            print('BROUGHT {} BCT'.format(amount))
-        except:
-            pass
+        print('BROUGHT {} BCT'.format(amount))
 
     @staticmethod
     def team():
@@ -58,6 +42,14 @@ class Rocket(object):
         for team in teams:
             if team['name'] == 'Rocket':
                 return team
+    
+    @staticmethod
+    def teams():
+        try:
+            r = requests.get('http://lauzhack.sqpub.ch/teams', timeout=0.4)
+            return r.json()
+        except:
+            return
                 
     @classmethod
     def transactions(cls):
