@@ -65,7 +65,7 @@ class App extends Component {
                         {i === 0 && '🥇'}
                         {i === 1 && '🥈'}
                         {i === 2 && '🥉'}
-                        {i > 3 && team.name === 'Rocket' && '🚀'}
+                        {i > 2 && team.name === 'Rocket' && '🚀'}
                       </span>
                     </td>
                     <td>{team.name}</td>
