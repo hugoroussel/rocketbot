@@ -11,75 +11,92 @@ dataset = []
 epoche_number = 0
 
 def import_data(dataset):
-    with open('training/data_bs_4.csv', mode='r') as csv_file:
+    with open('training/data_bs_fat.csv', mode='r') as csv_file:
         reader = csv.reader(csv_file, delimiter=',')
         for row in reader:
             dataset.append(row)
 
 def load_inputs(inputs):
     global epoche_number
-    epoche = dataset[epoche_number]
+    epoche = dataset[epoche_number%len(dataset)]
     for n in range(0,int(len(epoche)/4)):
         inputs.append([float(epoche[n*4]),float(epoche[n*4+1]),float(epoche[n*4+2]),float(epoche[n*4+3]),0.0,0.0])
     epoche_number += 1
+
+def simulate(avg_transactions, trend, genome, config, inputs, log):
+    net = neat.nn.FeedForwardNetwork.create(genome, config)
+    usd = 100000
+    btc = 0
+    transactions = 0
+    penality = 0
+    btc_ref = inputs[0][0]
+    buy = 0
+    sell = 0
+
+    for xi in inputs:
+        in_size = len(xi)
+        price = xi[0]
+
+        ni = xi.copy()
+        ni[0] = (ni[0]/btc_ref -1) * 7
+        ni[1] = (ni[1]/btc_ref -1) * 7
+        ni[2] = (ni[2]/btc_ref -1) * 7
+        ni[3] = (ni[3]/btc_ref -1) * 7
+        ni[in_size-2] = usd / 100000.0 - 0.5
+        ni[in_size-1] = btc * price / 100000.0 - 0.5
+        ni = tuple(ni)
+
+        # print(ni)
+
+        output = net.activate(ni)
+
+        if (output[0] > 0):
+            btc += (usd * (output[0]) / price) * (1 - FEE)
+            usd -= usd * output[0]
+            transactions += 1
+            buy += 1
+            if output[0]*usd > 0.01:
+                penality += 1
+
+        elif (output[0] < 0):
+            usd += (btc * -output[0] * price) * (1 - FEE)
+            btc -= (btc * -output[0])
+            transactions += 1
+            sell +=1
+            if output[0]*usd > 0.01:
+                penality += 1
+
+        if log:
+            print('\ninput: ', ni, '- output:',output)
+            print('bought:',buy,' - sold:',sell)
+
+    fitness = usd + btc * inputs[len(inputs) - 1][0]
+
+    # forcing transactions
+    if transactions < 9:
+        fitness -= (9 - transactions) * 10000
+    #penalizing abusive behavior
+    fitness -= 50 * penality
+
+
+    genome.fitness = fitness - trend
+    avg_transactions += transactions
+
 
 def eval_genomes(genomes, config):
 
     inputs = []
     load_inputs(inputs)
 
-    btc_ref = inputs[0][0]
     avg_transactions = 0
+    trend = (100000 / inputs[0][0]) * inputs[len(inputs) - 1][0]
 
     for genome_id, genome in genomes:
-        net = neat.nn.FeedForwardNetwork.create(genome, config)
-        usd = 100000
-        btc = 0
-        transactions = 0
-
-
-
-        trend = (usd / inputs[0][0]) * inputs[len(inputs) - 1][0]
-
-        for xi in inputs:
-            in_size = len(xi)
-            price = xi[0]
-
-            ni = xi.copy()
-            ni[0] /= btc_ref
-            ni[1] /= btc_ref
-            ni[2] /= btc_ref
-            ni[3] /= btc_ref
-            ni[in_size-2] = usd / 100000.0
-            ni[in_size-1] = btc / (100000.0/btc_ref)
-            ni = tuple(ni)
-
-            # print(ni)
-
-            output = net.activate(ni)
-
-            if (output[0] > 0 and output[1] > 0 and output[2] > 0.00001):
-                btc += ((usd * (output[2]+1)/2 ) / price) * (1 - FEE)
-                usd -= usd * (output[2]+1)/2
-                transactions += 1
-            elif (output[0] < 0 and output[1] > 0 and output[2] > 0.00001):
-                usd += ((btc * (output[2]+1)/2) * price) * (1 - FEE)
-                btc -= (btc * (output[2]+1)/2)
-                transactions += 1
-
-
-        fitness = usd + btc * inputs[len(inputs) - 1][0]
-
-        # forcing transactions
-        if transactions < 9:
-            fitness -= (9 - transactions) * 10000
-
-
-        genome.fitness = fitness
-        avg_transactions += transactions
+        simulate(avg_transactions, trend, genome, config, inputs, False)
 
     avg_transactions /= len(genomes)
     print('Average transactions :', avg_transactions)
+    print('Market :', trend)
 
 def run(config_file):
     # Load configuration.
@@ -100,7 +117,11 @@ def run(config_file):
     import_data(dataset)
 
     # Run for up to data's epoche generations.
-    winner = p.run(eval_genomes, len(dataset)) #len(dataset))
+    winner = p.run(eval_genomes, 2*len(dataset)-1) #len(dataset))
+
+    inputs = []
+    load_inputs(inputs)
+    simulate(0, 0, winner, config, inputs, True)
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))
