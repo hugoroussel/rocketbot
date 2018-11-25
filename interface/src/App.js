@@ -6,7 +6,7 @@ class App extends Component {
     super()
     this.state = {
       teams: [],
-      transactions: [],
+      // transactions: [],
       interval: 0
     }
     this.getValues = this.getValues.bind(this)
@@ -14,7 +14,7 @@ class App extends Component {
 
   async componentDidMount () {
     await this.getValues()
-    const interval = setInterval(this.getValues, 2000)
+    const interval = setInterval(this.getValues, 1000)
     this.setState({ interval })
   }
 
@@ -26,18 +26,21 @@ class App extends Component {
     const getTeams = await fetch('http://lauzhack.sqpub.ch/teams')
     const teams = await getTeams.json()
     this.setState({ teams })
+    /*
     const getTransactions = await fetch('http://localhost:5000/transactions')
     const transactions = JSON.parse(await getTransactions.json())
     this.setState({ transactions })
+    */
   }
 
   render () {
     const teams = this.state.teams
       .map(t => ({ cash: parseInt(t.cash), assets: parseInt(t.assets), ...t }))
+      .filter(t => t.cash !== 100000)
       .sort((t1, t2) => t1.cash + t1.assets < t2.cash + t2.assets)
-    const transactions = this.state.transactions.slice().reverse().slice(0, 10)
+    // const transactions = this.state.transactions.slice().reverse().slice(0, 10)
     return (
-      <div>
+      <div class="container">
         <h1 style={{ textAlign: 'center' }}><span role='img' aria-label='rocket'>🚀</span> Bot Interface</h1>
         <div style={{ display: 'flex' }}>
           <div style={{ flexGrow: 2 }}>
@@ -45,6 +48,7 @@ class App extends Component {
             <table style={{ width: '100%' }}>
               <thead>
                 <tr>
+                  <th/>
                   <th>Team Name</th>
                   <th>Total (USD)</th>
                   <th>XBTs</th>
@@ -52,11 +56,18 @@ class App extends Component {
                 </tr>
               </thead>
               <tbody>
-                {teams.map(team =>
+                {teams.map((team, i) =>
                   <tr
                     key={team.id}
-                    style={team.name === 'Rocket' ? { background: '#c5e7e2' } : {}}
                   >
+                    <td>
+                      <span role='img' aria-label='label'>
+                        {i === 0 && '🥇'}
+                        {i === 1 && '🥈'}
+                        {i === 2 && '🥉'}
+                        {i > 3 && team.name === 'Rocket' && '🚀'}
+                      </span>
+                    </td>
                     <td>{team.name}</td>
                     <td>{team.cash + team.assets}</td>
                     <td>{team.XBT}</td>
@@ -66,6 +77,7 @@ class App extends Component {
               </tbody>
             </table>
           </div>
+          {/*
           <div style={{ flexGrow: 1 }}>
             <h2 style={{ textAlign: 'center' }}>Latest Transactions</h2>
             <ul>
@@ -81,13 +93,14 @@ class App extends Component {
                   )
                 } else {
                   return (
-                    <li key={tx}><pre>{ tx }</pre></li>
+                    <li key={tx}><pre>{ JSON.stringify(tx) }</pre></li>
                   )
                 }
               }
               )}
             </ul>
           </div>
+          */}
         </div>
       </div>
     )
